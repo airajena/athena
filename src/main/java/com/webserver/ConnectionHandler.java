@@ -19,6 +19,7 @@ public class ConnectionHandler implements Runnable {
         this.connectionId = connectionId;
     }
 
+    // In your ConnectionHandler.java, update the run() method:
     @Override
     public void run() {
         String threadName = Thread.currentThread().getName();
@@ -28,10 +29,7 @@ public class ConnectionHandler implements Runnable {
                 BufferedReader input = new BufferedReader(
                         new InputStreamReader(clientSocket.getInputStream())
                 );
-                PrintWriter textOutput = new PrintWriter(
-                        clientSocket.getOutputStream(), true
-                );
-                java.io.OutputStream binaryOutput = clientSocket.getOutputStream()
+                java.io.OutputStream output = clientSocket.getOutputStream()
         ) {
             long startTime = System.currentTimeMillis();
 
@@ -42,8 +40,16 @@ public class ConnectionHandler implements Runnable {
 
                 Response response = requestProcessor.processRequest(request);
 
-                // Use new binary-safe response method
-                sendResponse(response, textOutput, binaryOutput);
+                // Send HTTP headers
+                output.write(response.toHttpString().getBytes());
+
+                // Send binary body
+                byte[] body = response.getBody();
+                if (body.length > 0) {
+                    output.write(body);
+                }
+
+                output.flush();
 
                 long processingTime = System.currentTimeMillis() - startTime;
                 System.out.println("✅ [" + threadName + "] Completed connection #" + connectionId +
@@ -61,6 +67,7 @@ public class ConnectionHandler implements Runnable {
             }
         }
     }
+
 
 
     private void sendResponse(Response response, PrintWriter textOutput,
