@@ -7,10 +7,12 @@ package com.webserver;
  */
 public class RequestProcessor {
     private long requestCount = 0;
+    private final StaticFileHandler staticFileHandler = new StaticFileHandler();
 
     /**
      * Process a request and return appropriate response
      */
+    // Update your processRequest method to include static file handling:
     public synchronized Response processRequest(Request request) {
         requestCount++;
         String path = request.getPath();
@@ -18,31 +20,26 @@ public class RequestProcessor {
 
         System.out.println("🍳 Processing request #" + requestCount + ": " + method + " " + path);
 
-        // Add a small delay to simulate processing work
-        // This will help us see the multi-threading in action!
+        // Add processing delay to see multi-threading
         try {
-            Thread.sleep(100); // 100ms processing time
+            Thread.sleep(50); // 50ms processing time
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
 
-        // Route to different handlers based on path
+        // Handle API endpoints first
         switch (path) {
-            case "/":
             case "/hello":
                 return createWelcomeResponse();
-
             case "/time":
                 return createTimeResponse();
-
             case "/stats":
                 return createStatsResponse();
-
             case "/slow":
-                return createSlowResponse(); // Test endpoint that takes time
-
+                return createSlowResponse();
             default:
-                return createNotFoundResponse();
+                // Try to serve as static file
+                return staticFileHandler.handleStaticFile(path);
         }
     }
 
