@@ -28,45 +28,52 @@ public class ConnectionHandler implements Runnable {
                 BufferedReader input = new BufferedReader(
                         new InputStreamReader(clientSocket.getInputStream())
                 );
-                PrintWriter output = new PrintWriter(
+                PrintWriter textOutput = new PrintWriter(
                         clientSocket.getOutputStream(), true
-                )
+                );
+                java.io.OutputStream binaryOutput = clientSocket.getOutputStream()
         ) {
-            // Record start time to measure how long this takes
             long startTime = System.currentTimeMillis();
 
-            // Parse the HTTP request
             Request request = parseRequest(input);
 
             if (request != null) {
                 System.out.println("📨 [" + threadName + "] Processing: " + request);
 
-                // Process the request (this is where our business logic lives)
                 Response response = requestProcessor.processRequest(request);
 
-                // Send response back to client
-                output.print(response.toHttpString());
-                output.flush();
+                // Use new binary-safe response method
+                sendResponse(response, textOutput, binaryOutput);
 
-                // Log performance metrics
                 long processingTime = System.currentTimeMillis() - startTime;
                 System.out.println("✅ [" + threadName + "] Completed connection #" + connectionId +
                         " in " + processingTime + "ms");
-            } else {
-                System.out.println("⚠️  [" + threadName + "] Invalid request on connection #" + connectionId);
             }
 
         } catch (IOException e) {
-            System.err.println("❌ [" + threadName + "] Error handling connection #" + connectionId +
-                    ": " + e.getMessage());
+            System.err.println("❌ [" + threadName + "] Error: " + e.getMessage());
         } finally {
-            // Always close the client socket
             try {
                 clientSocket.close();
                 System.out.println("🔌 [" + threadName + "] Closed connection #" + connectionId);
             } catch (IOException e) {
                 System.err.println("❌ Error closing socket: " + e.getMessage());
             }
+        }
+    }
+
+
+    private void sendResponse(Response response, PrintWriter textOutput,
+                              java.io.OutputStream binaryOutput) throws IOException {
+        // Send HTTP headers as text
+        textOutput.print(response.toHttpString());
+        textOutput.flush();
+
+        // Send body as binary data
+        byte[] body = response.getBody();
+        if (body.length > 0) {
+            binaryOutput.write(body);
+            binaryOutput.flush();
         }
     }
 
