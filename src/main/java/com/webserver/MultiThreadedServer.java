@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicLong;
-
+import com.webserver.metrics.MetricsCollector;
 /**
  * Multi-threaded HTTP server that can handle multiple requests simultaneously
  * This is our restaurant with multiple waiters!
@@ -16,6 +16,9 @@ public class MultiThreadedServer {
     private final RequestProcessor requestProcessor;
     private final AtomicLong connectionCounter; // Thread-safe counter
     private volatile boolean isRunning = false; // volatile = visible to all threads
+    public static MetricsCollector getMetricsCollector() {
+        return MetricsCollector.getInstance();
+    }
 
     public MultiThreadedServer(int port, int threadCount) {
         this.port = port;
@@ -94,4 +97,7 @@ public class MultiThreadedServer {
             System.out.println("✅ Server stopped successfully");
         }
     }
+//    public static MetricsCollector getMetricsCollector() {
+//        return metricsCollector;
+//    }
 }

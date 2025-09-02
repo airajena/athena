@@ -19,7 +19,6 @@ public class ConnectionHandler implements Runnable {
         this.connectionId = connectionId;
     }
 
-    // In your ConnectionHandler.java, update the run() method:
     @Override
     public void run() {
         String threadName = Thread.currentThread().getName();
@@ -69,32 +68,19 @@ public class ConnectionHandler implements Runnable {
     }
 
 
-
-    private void sendResponse(Response response, PrintWriter textOutput,
-                              java.io.OutputStream binaryOutput) throws IOException {
-        // Send HTTP headers as text
-        textOutput.print(response.toHttpString());
-        textOutput.flush();
-
-        // Send body as binary data
-        byte[] body = response.getBody();
-        if (body.length > 0) {
-            binaryOutput.write(body);
-            binaryOutput.flush();
-        }
-    }
-
     /**
      * Parse HTTP request from client
      * Same logic as before, but now in its own thread!
      */
+    // Update the parseRequest method in your ConnectionHandler.java
+    // Update the parseRequest method in ConnectionHandler.java
     private Request parseRequest(BufferedReader input) throws IOException {
         String requestLine = input.readLine();
         if (requestLine == null || requestLine.trim().isEmpty()) {
             return null;
         }
 
-        // Parse: "GET /hello HTTP/1.1"
+        // Parse: "PUT /api/users/123 HTTP/1.1"
         String method = "GET";
         String path = "/";
 
@@ -110,12 +96,57 @@ public class ConnectionHandler implements Runnable {
             }
         }
 
-        // Skip headers for now (we'll add this back later)
+        Request request = new Request(method, path);
+
+        // Parse headers
         String line;
         while ((line = input.readLine()) != null && !line.trim().isEmpty()) {
-            // Just read and ignore headers for now
+            if (line.contains(":")) {
+                int colonIndex = line.indexOf(':');
+                String headerName = line.substring(0, colonIndex).trim();
+                String headerValue = line.substring(colonIndex + 1).trim();
+                request.addHeader(headerName, headerValue);
+
+                if (headerName.toLowerCase().equals("content-type")) {
+                    System.out.println("🔍 Content-Type: '" + headerValue + "'");
+                }
+            }
         }
 
-        return new Request(method, path);
+        // 🆕 Read request body for POST and PUT requests
+        if (("POST".equals(method) || "PUT".equals(method)) && request.getContentLength() > 0) {
+            StringBuilder bodyBuilder = new StringBuilder();
+            int contentLength = request.getContentLength();
+
+            for (int i = 0; i < contentLength; i++) {
+                int ch = input.read();
+                if (ch == -1) break;
+                bodyBuilder.append((char) ch);
+            }
+
+            request.setBody(bodyBuilder.toString());
+            System.out.println("📝 Request body (" + method + "): " + request.getBody().length() + " chars");
+        }
+
+        return request;
     }
+
+
+
+    // Add this method to ConnectionHandler.java after the existing run() method
+
+    private void sendResponse(Response response, PrintWriter textOutput,
+                              java.io.OutputStream binaryOutput) throws IOException {
+        // Send HTTP headers as text
+        textOutput.print(response.toHttpString());
+        textOutput.flush();
+
+        // Send body as binary data
+        byte[] body = response.getBody();
+        if (body.length > 0) {
+            binaryOutput.write(body);
+            binaryOutput.flush();
+        }
+    }
+
 }

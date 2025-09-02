@@ -1,18 +1,18 @@
 // src/main/java/com/webserver/RequestProcessor.java
 package com.webserver;
 
-/**
- * Processes requests and generates responses
- * This is like our kitchen - where the actual work gets done
- */
+import com.webserver.handlers.UserApiHandler;
+import com.webserver.handlers.UserApiHandler;
+import com.webserver.security.AuthenticationFilter;
+import com.webserver.utils.JsonUtils;
+import java.util.Map;
+
 public class RequestProcessor {
     private long requestCount = 0;
     private final StaticFileHandler staticFileHandler = new StaticFileHandler();
+    private final UserApiHandler userApiHandler = new UserApiHandler();
+    private final AuthenticationFilter authFilter = new AuthenticationFilter(); // 🆕 Add this
 
-    /**
-     * Process a request and return appropriate response
-     */
-    // Update your processRequest method to include static file handling:
     public synchronized Response processRequest(Request request) {
         requestCount++;
         String path = request.getPath();
@@ -20,14 +20,26 @@ public class RequestProcessor {
 
         System.out.println("🍳 Processing request #" + requestCount + ": " + method + " " + path);
 
+        // 🆕 Authentication check FIRST
+        Response authResponse = authFilter.authenticate(request);
+        if (authResponse != null) {
+            return authResponse; // Return 401 if authentication fails
+        }
+
         // Add processing delay to see multi-threading
         try {
-            Thread.sleep(50); // 50ms processing time
+            Thread.sleep(50);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
 
-        // Handle API endpoints first
+        // Route to appropriate handler
+        if (path.startsWith("/api/")) {
+            System.out.println("🎯 Routing to API handler: " + path);
+            return userApiHandler.handleUserApi(request);
+        }
+
+        // Handle other endpoints
         switch (path) {
             case "/hello":
                 return createWelcomeResponse();
@@ -37,57 +49,103 @@ public class RequestProcessor {
                 return createStatsResponse();
             case "/slow":
                 return createSlowResponse();
+            case "/health":
+                return createHealthResponse(); // 🆕 Add health check
             default:
-                // Try to serve as static file
+                System.out.println("📁 Routing to static file handler: " + path);
                 return staticFileHandler.handleStaticFile(path);
         }
     }
 
+    // 🆕 Add health check endpoint
+    private Response createHealthResponse() {
+        Map<String, Object> healthData = Map.of(
+                "status", "UP",
+                "uptime", System.currentTimeMillis(),
+                "totalRequests", requestCount,
+                "totalUsers", userApiHandler.getUserCount()
+        );
+
+        String json = JsonUtils.createSuccessJson("Server is healthy", healthData);
+        Response response = new Response(200, json);
+        response.addHeader("Content-Type", "application/json");
+        return response;
+    }
+
     private Response createWelcomeResponse() {
-        String html = "<html><body style='font-family: Arial;'>" +
-                "<h1>🎉 Multi-Threaded Web Server!</h1>" +
-                "<p>Your server is now handling multiple requests simultaneously!</p>" +
-                "<ul>" +
-                "<li><a href='/hello'>Hello Page</a></li>" +
-                "<li><a href='/time'>Current Time</a></li>" +
-                "<li><a href='/stats'>Server Stats</a></li>" +
-                "<li><a href='/slow'>Slow Endpoint (for testing)</a></li>" +
-                "</ul>" +
-                "<p><strong>Try opening multiple tabs to see multi-threading in action!</strong></p>" +
-                "</body></html>";
-        return new Response(200, html);
+        String html = "<!DOCTYPE html>\n" +
+                "<html>\n" +
+                "<head>\n" +
+                "    <title>My Awesome Web Server</title>\n" +
+                "    <style>\n" +
+                "        body { font-family: Arial, sans-serif; margin: 40px; }\n" +
+                "        h1 { color: #333; }\n" +
+                "        .info { background: #f0f0f0; padding: 20px; border-radius: 8px; }\n" +
+                "    </style>\n" +
+                "</head>\n" +
+                "<body>\n" +
+                "    <h1>🎉 Welcome to My Multi-Threaded Web Server!</h1>\n" +
+                "    <div class='info'>\n" +
+                "        <p>Congratulations! Your server is working perfectly!</p>\n" +
+                "        <p>Try these endpoints:</p>\n" +
+                "        <ul>\n" +
+                "            <li><a href='/hello'>/hello</a> - This page</li>\n" +
+                "            <li><a href='/time'>/time</a> - Current server time</li>\n" +
+                "            <li><a href='/stats'>/stats</a> - Server statistics</li>\n" +
+                "            <li><a href='/slow'>/slow</a> - Slow endpoint</li>\n" +
+                "            <li><a href='/api/users'>/api/users</a> - User API (JSON)</li>\n" +
+                "        </ul>\n" +
+                "    </div>\n" +
+                "</body>\n" +
+                "</html>";
+
+        Response response = new Response(200, html);
+        response.addHeader("Content-Type", "text/html");
+        return response;
     }
 
     private Response createTimeResponse() {
         String currentTime = new java.util.Date().toString();
         String threadName = Thread.currentThread().getName();
 
-        String html = "<html><body style='font-family: Arial;'>" +
-                "<h1>⏰ Current Time</h1>" +
-                "<p>Time: <strong>" + currentTime + "</strong></p>" +
-                "<p>Served by thread: <strong>" + threadName + "</strong></p>" +
-                "<a href='/hello'>← Back to Home</a>" +
-                "</body></html>";
-        return new Response(200, html);
+        String html = "<!DOCTYPE html>\n" +
+                "<html>\n" +
+                "<body style='font-family: Arial;'>\n" +
+                "    <h1>⏰ Current Time</h1>\n" +
+                "    <p>Time: <strong>" + currentTime + "</strong></p>\n" +
+                "    <p>Served by thread: <strong>" + threadName + "</strong></p>\n" +
+                "    <a href='/hello'>← Back to Home</a>\n" +
+                "</body>\n" +
+                "</html>";
+
+        Response response = new Response(200, html);
+        response.addHeader("Content-Type", "text/html");
+        return response;
     }
 
     private Response createStatsResponse() {
         String threadName = Thread.currentThread().getName();
         int activeThreads = Thread.activeCount();
 
-        String html = "<html><body style='font-family: Arial;'>" +
-                "<h1>📊 Server Statistics</h1>" +
-                "<p>Total requests processed: <strong>" + requestCount + "</strong></p>" +
-                "<p>Current thread: <strong>" + threadName + "</strong></p>" +
-                "<p>Active threads: <strong>" + activeThreads + "</strong></p>" +
-                "<p>Java version: <strong>" + System.getProperty("java.version") + "</strong></p>" +
-                "<a href='/hello'>← Back to Home</a>" +
-                "</body></html>";
-        return new Response(200, html);
+        String html = "<!DOCTYPE html>\n" +
+                "<html>\n" +
+                "<body style='font-family: Arial;'>\n" +
+                "    <h1>📊 Server Statistics</h1>\n" +
+                "    <p>Total requests processed: <strong>" + requestCount + "</strong></p>\n" +
+                "    <p>Current thread: <strong>" + threadName + "</strong></p>\n" +
+                "    <p>Active threads: <strong>" + activeThreads + "</strong></p>\n" +
+                "    <p>Total users in API: <strong>" + userApiHandler.getUserCount() + "</strong></p>\n" +
+                "    <a href='/hello'>← Back to Home</a>\n" +
+                "</body>\n" +
+                "</html>";
+
+        Response response = new Response(200, html);
+        response.addHeader("Content-Type", "text/html");
+        return response;
     }
 
     private Response createSlowResponse() {
-        // Simulate a slow operation (like database query)
+        // Simulate a slow operation
         try {
             Thread.sleep(3000); // 3 seconds
         } catch (InterruptedException e) {
@@ -95,23 +153,20 @@ public class RequestProcessor {
         }
 
         String threadName = Thread.currentThread().getName();
-        String html = "<html><body style='font-family: Arial;'>" +
-                "<h1>🐌 Slow Response Complete!</h1>" +
-                "<p>This response took 3 seconds to generate.</p>" +
-                "<p>But other requests were served simultaneously!</p>" +
-                "<p>Served by thread: <strong>" + threadName + "</strong></p>" +
-                "<a href='/hello'>← Back to Home</a>" +
-                "</body></html>";
-        return new Response(200, html);
-    }
+        String html = "<!DOCTYPE html>\n" +
+                "<html>\n" +
+                "<body style='font-family: Arial;'>\n" +
+                "    <h1>🐌 Slow Response Complete!</h1>\n" +
+                "    <p>This response took 3 seconds to generate.</p>\n" +
+                "    <p>But other requests were served simultaneously!</p>\n" +
+                "    <p>Served by thread: <strong>" + threadName + "</strong></p>\n" +
+                "    <a href='/hello'>← Back to Home</a>\n" +
+                "</body>\n" +
+                "</html>";
 
-    private Response createNotFoundResponse() {
-        String html = "<html><body style='font-family: Arial;'>" +
-                "<h1>404 - Page Not Found</h1>" +
-                "<p>The page you're looking for doesn't exist.</p>" +
-                "<a href='/hello'>← Back to Home</a>" +
-                "</body></html>";
-        return new Response(404, html);
+        Response response = new Response(200, html);
+        response.addHeader("Content-Type", "text/html");
+        return response;
     }
 
     public long getRequestCount() {

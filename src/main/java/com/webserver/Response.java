@@ -25,18 +25,16 @@ public class Response {
         setTextBody(body);
     }
 
-    // Add this method to your existing Response.java class
-    public void setBinaryBody(byte[] binaryBody, String contentType) {
-        this.body = binaryBody;
-        addHeader("Content-Type", contentType);
-        addHeader("Content-Length", String.valueOf(binaryBody.length));
-    }
-
-
     public void setTextBody(String textBody) {
         this.body = textBody.getBytes();
         addHeader("Content-Type", "text/html; charset=UTF-8");
         addHeader("Content-Length", String.valueOf(this.body.length));
+    }
+
+    public void setBinaryBody(byte[] binaryBody, String contentType) {
+        this.body = binaryBody;
+        addHeader("Content-Type", contentType);
+        addHeader("Content-Length", String.valueOf(binaryBody.length));
     }
 
     public void addHeader(String name, String value) {
