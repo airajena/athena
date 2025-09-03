@@ -1,4 +1,3 @@
-// src/main/java/com/webserver/metrics/MetricsServer.java
 package com.webserver.metrics;
 
 import io.prometheus.client.exporter.HTTPServer;
@@ -23,7 +22,6 @@ public class MetricsServer {
             System.out.println("📊 Prometheus metrics server started on http://localhost:" + port + "/metrics");
         } catch (IOException e) {
             System.err.println("❌ Failed to start metrics server: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 

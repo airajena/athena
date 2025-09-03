@@ -10,25 +10,38 @@ services:
     networks:
       - monitoring
 
-  # Kafka Message Broker
+    # Kafka Message Broker - COMPLETELY FIXED
   kafka:
     image: confluentinc/cp-kafka:7.4.0
     depends_on:
       - zookeeper
-    # 🔧 ADD THIS: Wait for ZooKeeper before starting
     command: ["bash", "-c", "echo 'Waiting for ZooKeeper...'; sleep 20; /etc/confluent/docker/run"]
     ports:
-      - "9092:9092"
+      - "9093:9092"  # 🔧 FIXED: Map host port 9093 to container port 9092
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9093  # 🔧 FIXED: Use 9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
     networks:
       - monitoring
-    # 🔧 ADD THIS: Restart policy
     restart: unless-stopped
+
+
+
+  # Redis Cache - ADDED
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - monitoring
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
 
   # Elasticsearch
   elasticsearch:
@@ -105,6 +118,7 @@ volumes:
   elasticsearch-data:
   prometheus-data:
   grafana-data:
+  redis-data:  # Added Redis volume
 
 networks:
   monitoring:

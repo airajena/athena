@@ -1,4 +1,3 @@
-// src/main/java/com/webserver/metrics/MetricsCollector.java
 package com.webserver.metrics;
 
 import io.prometheus.client.*;
@@ -11,9 +10,6 @@ public class MetricsCollector {
     private final Counter httpRequestsTotal;
     private final Histogram httpRequestDuration;
     private final Gauge activeConnections;
-    private final Gauge threadPoolSize;
-    private final Gauge threadPoolActive;
-    private final Counter userOperationsTotal;
 
     private MetricsCollector() {
         httpRequestsTotal = Counter.build()
@@ -26,7 +22,6 @@ public class MetricsCollector {
                 .name("http_request_duration_seconds")
                 .help("HTTP request latency")
                 .labelNames("method", "endpoint")
-                .buckets(0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0, 5.0)
                 .register();
 
         activeConnections = Gauge.build()
@@ -34,23 +29,6 @@ public class MetricsCollector {
                 .help("Number of active connections")
                 .register();
 
-        threadPoolSize = Gauge.build()
-                .name("thread_pool_size")
-                .help("Current thread pool size")
-                .register();
-
-        threadPoolActive = Gauge.build()
-                .name("thread_pool_active")
-                .help("Active threads in pool")
-                .register();
-
-        userOperationsTotal = Counter.build()
-                .name("user_operations_total")
-                .help("Total user operations")
-                .labelNames("operation", "status")
-                .register();
-
-        // Register default JVM metrics only once
         if (!initialized) {
             DefaultExports.initialize();
             initialized = true;
@@ -73,14 +51,5 @@ public class MetricsCollector {
 
     public void setActiveConnections(int count) {
         activeConnections.set(count);
-    }
-
-    public void updateThreadPoolMetrics(int poolSize, int activeThreads) {
-        threadPoolSize.set(poolSize);
-        threadPoolActive.set(activeThreads);
-    }
-
-    public void recordUserOperation(String operation, String status) {
-        userOperationsTotal.labels(operation, status).inc();
     }
 }
