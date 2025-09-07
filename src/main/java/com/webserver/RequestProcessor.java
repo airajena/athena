@@ -29,7 +29,6 @@ public class RequestProcessor {
         System.out.println("🍳 Processing request #" + reqId + ": " + method + " " + path);
 
         try {
-            // Route request based on path
             if (path.startsWith("/api/users")) {
                 return userApiHandler.handleUserApi(request);
             } else if (path.equals("/health")) {
@@ -39,7 +38,6 @@ public class RequestProcessor {
             } else if (path.equals("/time")) {
                 return createTimeResponse();
             } else {
-                // Try static file serving
                 return staticFileHandler.handleStaticFile(path);
             }
 

@@ -1,4 +1,3 @@
-/* Modern CSS for Enterprise Web Server */
 * {
     margin: 0;
     padding: 0;
@@ -157,7 +156,6 @@ footer {
     font-size: 14px;
 }
 
-/* Responsive design */
 @media (max-width: 768px) {
     .container {
         padding: 10px;

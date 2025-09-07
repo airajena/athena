@@ -5,10 +5,10 @@ import com.webserver.metrics.MetricsServer;
 
 public class WebServerApp {
     public static void main(String[] args) {
-        System.out.println("🌟 Starting Enterprise Multi-Threaded Web Server...");
+        System.out.println("🌟 Starting Multi-Threaded Web Server...");
 
         int port = 8080;
-        int threadCount = 50; // Increased for better concurrency
+        int threadCount = 50;
         int metricsPort = 9090;
 
         if (args.length > 0) {
@@ -33,22 +33,18 @@ public class WebServerApp {
         System.out.println("🧵 Thread Count: " + threadCount);
 
         try {
-            // Initialize Prometheus metrics
             MetricsCollector metricsCollector = MetricsCollector.getInstance();
             MetricsServer metricsServer = new MetricsServer(metricsPort);
             metricsServer.start();
 
-            // Create and start the multi-threaded server
             MultiThreadedServer server = new MultiThreadedServer(port, threadCount);
 
-            // Graceful shutdown hook
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 System.out.println("\n🚨 Shutdown signal received");
                 server.stop();
                 metricsServer.stop();
             }));
 
-            // Start the server
             server.start();
 
         } catch (Exception e) {

@@ -1,4 +1,4 @@
-// src/main/java/com/webserver/SimpleServer.java
+
 package com.webserver;
 
 import java.io.*;
@@ -38,9 +38,8 @@ public class SimpleServer {
 
             System.out.println("📨 Request: " + requestLine);
 
-            // Parse request (simple way - no arrays causing problems!)
-            String method = "GET";  // Default
-            String path = "/";      // Default
+            String method = "GET";
+            String path = "/";
 
             if (requestLine.contains(" ")) {
                 int firstSpace = requestLine.indexOf(' ');

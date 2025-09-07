@@ -1,4 +1,3 @@
-// src/main/java/com/webserver/logging/StructuredLogger.java
 package com.webserver.logging;
 
 import org.slf4j.Logger;

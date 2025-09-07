@@ -1,4 +1,3 @@
-// JavaScript for Enterprise Web Server Dashboard
 class ServerDashboard {
     constructor() {
         this.startTime = Date.now();
@@ -10,7 +9,6 @@ class ServerDashboard {
         this.updateUptime();
         this.refreshStats();
 
-        // Auto-refresh stats every 10 seconds
         setInterval(() => {
             this.updateUptime();
             this.refreshStats();
@@ -63,7 +61,6 @@ class ServerDashboard {
         button.textContent = '🔄 Testing...';
 
         try {
-            // Fire 10 requests simultaneously
             const promises = [];
             for (let i = 0; i < 10; i++) {
                 promises.push(fetch('/time'));
@@ -90,7 +87,6 @@ class ServerDashboard {
     }
 }
 
-// Global functions for button clicks
 function refreshStats() {
     window.dashboard.refreshStats();
 }
@@ -99,7 +95,6 @@ function testConcurrency() {
     window.dashboard.testConcurrency();
 }
 
-// Initialize dashboard when page loads
 document.addEventListener('DOMContentLoaded', () => {
     window.dashboard = new ServerDashboard();
 });

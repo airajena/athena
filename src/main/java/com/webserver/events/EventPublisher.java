@@ -15,12 +15,10 @@ public class EventPublisher {
     private final String topicName = "webserver-events";
     private boolean connected = false;
 
-    // 🔧 ADD THIS: Default constructor that uses localhost:9093
     public EventPublisher() {
-        this("localhost:9093"); // Calls the main constructor with default port
+        this("localhost:9093");
     }
 
-    // Existing constructor (keep as is)
     public EventPublisher(String bootstrapServers) {
         try {
             Properties props = new Properties();
@@ -40,8 +38,6 @@ public class EventPublisher {
             System.out.println("💡 Continuing without Kafka event publishing...");
         }
     }
-
-    // ... rest of your existing methods (publishEvent, isConnected, close) ...
 
     public void publishEvent(String eventType, Object data) {
         if (!connected) return;

@@ -15,7 +15,6 @@ public class Request {
         this.path = path;
     }
 
-    // Getters and setters
     public String getMethod() { return method; }
     public void setMethod(String method) { this.method = method; }
 

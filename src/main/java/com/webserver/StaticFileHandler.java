@@ -40,7 +40,7 @@ public class StaticFileHandler {
         if (path.startsWith("/")) {
             path = path.substring(1);
         }
-        return path.replaceAll("\\.\\./", ""); // Security: prevent directory traversal
+        return path.replaceAll("\\.\\./", "");
     }
 
     private String getContentType(String filename) {

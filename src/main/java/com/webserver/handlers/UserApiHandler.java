@@ -1,4 +1,3 @@
-// src/main/java/com/webserver/handlers/UserApiHandler.java
 package com.webserver.handlers;
 
 import com.webserver.Request;

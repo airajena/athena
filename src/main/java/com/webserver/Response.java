@@ -13,7 +13,6 @@ public class Response {
         this.statusCode = statusCode;
         this.reasonPhrase = getReasonPhrase(statusCode);
 
-        // Default headers
         addHeader("Server", "Enterprise-WebServer/1.0");
         addHeader("Connection", "close");
         addHeader("Content-Type", "text/html; charset=UTF-8");

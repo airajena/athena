@@ -1,7 +1,4 @@
-version: '3.8'
-
 services:
-  # Zookeeper (required for Kafka)
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
     environment:
@@ -10,28 +7,36 @@ services:
     networks:
       - monitoring
 
-    # Kafka Message Broker - COMPLETELY FIXED
   kafka:
     image: confluentinc/cp-kafka:7.4.0
     depends_on:
       - zookeeper
-    command: ["bash", "-c", "echo 'Waiting for ZooKeeper...'; sleep 20; /etc/confluent/docker/run"]
     ports:
-      - "9093:9092"  # 🔧 FIXED: Map host port 9093 to container port 9092
+      # Map host port 9093 to the container's EXTERNAL listener port (29092)
+      - "9093:29092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9093  # 🔧 FIXED: Use 9093
+      # --- Define Listeners ---
+      # Listener Names and Security Protocols
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      # The address the broker listens on for internal and external traffic
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:29092
+      # --- Advertise Listeners ---
+      # The address clients (and other brokers) should use to connect
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:9093
+      # --- Specify Internal Communication ---
+      # Tells the broker to use the INTERNAL listener for its own communication
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      # --- Other Settings ---
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     networks:
       - monitoring
     restart: unless-stopped
 
 
 
-  # Redis Cache - ADDED
   redis:
     image: redis:7-alpine
     ports:
@@ -43,7 +48,6 @@ services:
     volumes:
       - redis-data:/data
 
-  # Elasticsearch
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
     environment:
@@ -57,7 +61,6 @@ services:
     networks:
       - monitoring
 
-  # Logstash
   logstash:
     image: docker.elastic.co/logstash/logstash:8.11.0
     ports:
@@ -70,7 +73,6 @@ services:
     networks:
       - monitoring
 
-  # Kibana
   kibana:
     image: docker.elastic.co/kibana/kibana:8.11.0
     ports:
@@ -82,7 +84,6 @@ services:
     networks:
       - monitoring
 
-  # Prometheus
   prometheus:
     image: prom/prometheus:v2.47.0
     ports:
@@ -99,7 +100,7 @@ services:
     networks:
       - monitoring
 
-  # Grafana
+
   grafana:
     image: grafana/grafana:10.2.0
     ports:
@@ -118,7 +119,7 @@ volumes:
   elasticsearch-data:
   prometheus-data:
   grafana-data:
-  redis-data:  # Added Redis volume
+  redis-data:
 
 networks:
   monitoring:

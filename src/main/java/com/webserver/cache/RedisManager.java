@@ -18,7 +18,6 @@ public class RedisManager {
 
             jedisPool = new JedisPool(config, host, port, 2000);
 
-            // Test connection
             try (Jedis jedis = jedisPool.getResource()) {
                 jedis.ping();
                 connected = true;

@@ -1,4 +1,3 @@
-// src/main/java/com/webserver/model/User.java
 package com.webserver.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -11,12 +10,10 @@ public class User {
     private int age;
     private long createdAt;
 
-    // Default constructor for Jackson
     public User() {
         this.createdAt = System.currentTimeMillis();
     }
 
-    // Constructor with Jackson annotations for JSON parsing
     @JsonCreator
     public User(@JsonProperty("id") Long id,
                 @JsonProperty("name") String name,
@@ -29,7 +26,6 @@ public class User {
         this.createdAt = System.currentTimeMillis();
     }
 
-    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -45,7 +41,6 @@ public class User {
     public long getCreatedAt() { return createdAt; }
     public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }
 
-    // Validation method
     public boolean isValid() {
         return name != null && !name.trim().isEmpty() &&
                 email != null && email.contains("@") &&
