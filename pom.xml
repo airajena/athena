@@ -40,20 +40,6 @@
             <version>0.16.0</version>
         </dependency>
 
-        <!-- Kafka Integration -->
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-clients</artifactId>
-            <version>3.6.0</version>
-        </dependency>
-
-        <!-- Redis Client -->
-        <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-            <version>4.3.1</version>
-        </dependency>
-
         <!-- Structured Logging -->
         <dependency>
             <groupId>ch.qos.logback</groupId>

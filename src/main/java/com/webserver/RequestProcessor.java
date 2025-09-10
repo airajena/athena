@@ -1,8 +1,6 @@
 package com.webserver;
 
 import com.webserver.handlers.UserApiHandler;
-import com.webserver.cache.RedisManager;
-import com.webserver.events.EventPublisher;
 import com.webserver.metrics.MetricsCollector;
 import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicLong;
@@ -10,15 +8,11 @@ import java.util.concurrent.atomic.AtomicLong;
 public class RequestProcessor {
     private final StaticFileHandler staticFileHandler;
     private final UserApiHandler userApiHandler;
-    private final RedisManager redisManager;
-    private final EventPublisher eventPublisher;
     private final AtomicLong requestCount = new AtomicLong(0);
 
     public RequestProcessor() {
         this.staticFileHandler = new StaticFileHandler();
         this.userApiHandler = new UserApiHandler();
-        this.redisManager = new RedisManager("localhost", 6379);
-        this.eventPublisher = new EventPublisher("localhost:9093");
     }
 
     public Response processRequest(Request request) {
@@ -56,15 +50,11 @@ public class RequestProcessor {
                 <h1>✅ Server Health: OK</h1>
                 <p>Server Time: %s</p>
                 <p>Total Requests: %d</p>
-                <p>Redis Connected: %s</p>
-                <p>Kafka Connected: %s</p>
             </body>
             </html>
             """.formatted(
                 LocalDateTime.now(),
-                requestCount.get(),
-                redisManager.isConnected() ? "✅ Yes" : "❌ No",
-                eventPublisher.isConnected() ? "✅ Yes" : "❌ No"
+                requestCount.get()
         );
 
         return new Response(200, html);
